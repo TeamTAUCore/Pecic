@@ -112,11 +112,9 @@ public class Main extends Application {
 		root.setPrefSize(920, 760);
 
 		for(int x = 0; x < 19; x++) {
-			if(x < 8 || x > 10) {
-				for(int y = 8; y < 11; y++) {
+			if(x < 8 || x > 10)
+				for(int y = 8; y < 11; y++)
 					drawTile(root, x, y, false);
-				}
-			}
 			else {
 				for(int y = 0; y < 19; y++) {
 					if(y > 7 && y < 11)
@@ -268,7 +266,6 @@ public class Main extends Application {
 		remaining.setTranslateY(offset);
 		root.getChildren().addAll(moves, remaining);
 
-
 		for(int i = 0; i < possibleMoves.length; i++) {
 			RadioButton text = new RadioButton(possibleMoves[i] +"");
 			text.setTranslateX(20 * offset - 5);
@@ -326,7 +323,6 @@ public class Main extends Application {
 		primaryStage.setTitle("Peçiç");
 		primaryStage.setScene(new Scene(root));
 		primaryStage.show();
-
 	}
 
 	public static void main(String[] args) {
