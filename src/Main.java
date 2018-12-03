@@ -61,6 +61,11 @@ public class Main extends Application {
 				}
 			}
 
+
+			for(int i = 0; i < 5; i++) {
+				System.out.println("Hallo");
+			}
+
 			if(isRepeatable) {
 				numberOfRemainingMoves++;
 				rollAgainText.setText("Roll Again");
