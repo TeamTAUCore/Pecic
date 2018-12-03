@@ -45,7 +45,6 @@ public class Main extends Application {
 	}
 
 	void ZarAt() {
-		System.out.println("Loooooll");
 		if(canThrowDice) {
 			int counter = 0;
 			Random random = new Random();
