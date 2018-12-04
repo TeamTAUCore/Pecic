@@ -20,6 +20,13 @@ import java.util.Random;
 
 public class Main extends Application {
 
+
+
+
+    //Eğer tüm taşlar oyuna girmediyse 12 veya 25 oynanamaz , 12 ve 25 ile sadece taş dikilebilir.
+
+
+
     private Tile[][] tiles = new Tile[19][19];
     private static Token[][] tokens = new Token[2][4];
     private int[] possibleMoves = {6, 12, 4, 3, 2, 25, 8};
@@ -42,6 +49,16 @@ public class Main extends Application {
                 return true;
         }
         return false;
+    }
+
+    private boolean isAllTokensInGame()
+    {
+        for (Token t : tokens[currentTurn]) {
+            if (t.getTranslateX() == t.startPosX && t.getTranslateY() == t.startPosY)
+                return false;
+        }
+        return true;
+
     }
 
     private void ZarAt() {
@@ -187,7 +204,14 @@ public class Main extends Application {
                 hasMovedThisTurn = true;
                 return;
             }
-            if (token.counter <= tileToMoveCount) {
+            if (!isAllTokensInGame())
+            {
+                if (selected==1 || selected==5)
+                {
+                    return;
+                }
+            }
+             if (token.counter <= tileToMoveCount) {
                 hasMovedThisTurn = true;
                 if (token.counter < tileToMoveCount) {   // If moved not at end
                     token.counter += possibleMoves[selected];
@@ -325,8 +349,8 @@ public class Main extends Application {
 
     private class Token extends StackPane {
         // Tasın resimleri
-        Image ince = new Image(new File("C:\\Users\\Sancho Jimenez\\IdeaProjects\\Pecic\\src\\sample\\Inceler.jpg").toURI().toURL().toExternalForm());
-        Image sisko = new Image(new File("C:\\Users\\Sancho Jimenez\\IdeaProjects\\Pecic\\src\\sample\\Siskolar.jpg").toURI().toURL().toExternalForm());
+        Image ince = new Image(new File("/Users/nusretozates/IdeaProjects/Pecic/src/Inceler.jpg").toURI().toURL().toExternalForm());
+        Image sisko = new Image(new File("/Users/nusretozates/IdeaProjects/Pecic/src/Siskolar.jpg").toURI().toURL().toExternalForm());
 
         // İnce mi olacak kalın
         int type;
