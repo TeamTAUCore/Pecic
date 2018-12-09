@@ -1,9 +1,7 @@
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -16,6 +14,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Optional;
 import java.util.Random;
 
 public class Main extends Application {
@@ -29,7 +28,7 @@ public class Main extends Application {
 
     private Tile[][] tiles = new Tile[19][19];
     private static Token[][] tokens = new Token[2][4];
-    private int[] possibleMoves = {6, 12, 4, 3, 2, 25, 8};
+    private int[] possibleMoves = {6, 13, 4, 3, 2, 26, 8}; // 12 değil 13 oynuyoruz aslında , 25 değil 26 .
     private int[] repeatableMovesIndices = {0, 1, 5, 6};
     private static Text[] movesRemaining = new Text[7];
     private static int numberOfRemainingMoves = 0;
@@ -155,7 +154,7 @@ public class Main extends Application {
         System.out.println(token.startPosX);
         token.setTranslateX(token.startPosX);
         token.setTranslateY(token.startPosY);
-        token.counter = 0;
+        token.roadIndex = 0;
         token.rectangle.setStroke(null);
     }
 
@@ -190,13 +189,21 @@ public class Main extends Application {
 
     private void moveToken(Token token) {
         if (currentTurn == token.type && Integer.parseInt(movesRemaining[selected].getText()) > 0) {
-            if (token.counter == 0) {
+
+            if (!isAllTokensInGame() && token.roadIndex !=0)
+            {
+                if (selected==1 || selected==5)
+                {
+                    return;
+                }
+            }
+            if (token.roadIndex == 0) {
                 if (selected == 1 || selected == 5) {
                     if (selected == 1)
-                        token.counter = 1;
-                    else token.counter = 15;
-                    token.setTranslateX(token.road[token.counter].getTranslateX());
-                    token.setTranslateY(token.road[token.counter].getTranslateY());
+                        token.roadIndex = 1;
+                    else token.roadIndex = 15;
+                    token.setTranslateX(token.road[token.roadIndex].getTranslateX());
+                    token.setTranslateY(token.road[token.roadIndex].getTranslateY());
                     token.rectangle.setStroke(Color.BLACK);
                     movesRemaining[selected].setText((Integer.parseInt(movesRemaining[selected].getText()) - 1) + "");
                     numberOfRemainingMoves--;
@@ -204,29 +211,59 @@ public class Main extends Application {
                 hasMovedThisTurn = true;
                 return;
             }
-            if (!isAllTokensInGame())
-            {
-                if (selected==1 || selected==5)
-                {
-                    return;
-                }
-            }
-             if (token.counter <= tileToMoveCount) {
+
+             if (token.roadIndex <= tileToMoveCount)
+             {
                 hasMovedThisTurn = true;
-                if (token.counter < tileToMoveCount) {   // If moved not at end
-                    token.counter += possibleMoves[selected];
-                    if (token.counter > tileToMoveCount) {
-                        moveToEnd(token);
-                        token.counter = 74;
-                    } else {
-                        token.setTranslateX(token.road[token.counter].getTranslateX());
-                        token.setTranslateY((token.road[token.counter].getTranslateY()));
-                        if (mustDeleteOpponentsTokens(token.road[token.counter], token)) { // If opponents tokens are stacked
-                            resetOpponentsTokens(token.road[token.counter], token);
+                if (token.roadIndex < tileToMoveCount) {   // If moved not at end
+                    token.roadIndex += possibleMoves[selected];
+                    if (token.roadIndex > tileToMoveCount)
+                    {
+                        // Eğer yeterli alan yoksa oynamak için , 12 veya 25 sadece 1 adım atmak için kullanılabilir.
+                        if (selected==1 || selected ==25)
+                        {
+                            token.roadIndex -= possibleMoves[selected];
+                            token.roadIndex++;
+                            TranslateTokenAndControlOppenents(token);
+                        }else
+                        {
+                            //Nope you cant move bro turn back
+                            token.roadIndex -= possibleMoves[selected];
+                            hasMovedThisTurn=false;
+                            return;
                         }
-                    }
+
+                    } else
+                        {
+                            if (selected==1 || selected==5)
+                            {
+                             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+
+                             alert.setTitle("Adım seçimi");
+                             alert.setHeaderText(selected + " kadar veya sadece 1 adım atabilirsin");
+                             alert.setContentText("Bir adım seç");
+
+                                ButtonType select = new ButtonType(String.valueOf(selected));
+                                ButtonType oneMove  = new ButtonType("1");
+                                alert.getButtonTypes().setAll(select,oneMove);
+                                Optional<ButtonType> result = alert.showAndWait();
+
+                                if (result.get() == select)
+                                {
+                                    TranslateTokenAndControlOppenents(token);
+                                }else
+                                {
+                                    token.roadIndex-=possibleMoves[selected];
+                                    token.roadIndex++;
+                                    TranslateTokenAndControlOppenents(token);
+                                }
+
+                            }else
+                          TranslateTokenAndControlOppenents(token);
+                        }
                 } else                                    // If at end
                     moveToEnd(token);
+
                 hasMovedThisTurn = true;
 
                 numberOfRemainingMoves--;
@@ -234,7 +271,23 @@ public class Main extends Application {
                 if (numberOfRemainingMoves == 0)
                     endturn();
             }
+             if (token.roadIndex == tileToMoveCount-1)
+             {
+                 if (selected==1 || selected==5)
+                 {
+                     hasMovedThisTurn= true;
 
+                 }
+             }
+
+        }
+    }
+
+    private void TranslateTokenAndControlOppenents(Token token) {
+        token.setTranslateX(token.road[token.roadIndex].getTranslateX());
+        token.setTranslateY((token.road[token.roadIndex].getTranslateY()));
+        if (mustDeleteOpponentsTokens(token.road[token.roadIndex], token)) { // If opponents tokens are stacked
+            resetOpponentsTokens(token.road[token.roadIndex], token);
         }
     }
 
@@ -354,7 +407,7 @@ public class Main extends Application {
 
         // İnce mi olacak kalın
         int type;
-        int startPosX, startPosY, id, counter = 0;
+        int startPosX, startPosY, id, roadIndex = 0;
 
         Tile[] road = new Tile[tileToMoveCount];
         Rectangle rectangle = new Rectangle(40, 40);
