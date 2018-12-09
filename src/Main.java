@@ -14,17 +14,18 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Random;
 
 public class Main extends Application {
 
 
-
+    private String firstplayername,secondplayername;
 
     //Eğer tüm taşlar oyuna girmediyse 12 veya 25 oynanamaz , 12 ve 25 ile sadece taş dikilebilir.
 
-
+   private ArrayList<Integer> moves = new ArrayList<>();
 
     private Tile[][] tiles = new Tile[19][19];
     private static Token[][] tokens = new Token[2][4];
@@ -37,6 +38,7 @@ public class Main extends Application {
     private boolean hasMovedThisTurn = false;
     private Text turnText = new Text("");
     private Text rollAgainText = new Text("");
+
 
     private static int currentTurn = 1;
     private final int tileToMoveCount = 73;
@@ -77,10 +79,27 @@ public class Main extends Application {
                 }
             }
 
+
             if (isRepeatable) {
                 numberOfRemainingMoves++;
                 rollAgainText.setText("Roll Again");
+                moves.add(counter);
             } else {  // If can't roll again
+
+                //Eğer hiç taş yoksa oyunda
+                if (!currentPlayerHasTokenInPlay())
+                {
+                    boolean canPlay = false;
+                    //Eğer 12 veya 25 varsa oynayabilir yoksa oynayamaz.
+                    for(int i : moves)
+                    {
+                        if (i==1 || i==5)
+                        {
+                            canPlay= true;
+                        }
+                    }
+                    if (!canPlay) numberOfRemainingMoves=0;
+                }
                 if (numberOfRemainingMoves == 0 && !currentPlayerHasTokenInPlay()) { // No valid moves
                     endturn();
                     return;
@@ -173,10 +192,10 @@ public class Main extends Application {
         rollAgainText.setText("Roll");
         if (currentTurn == 1) {
             currentTurn = 0;
-            turnText.setText("Turn: Player 2");
+            turnText.setText("Turn: " + secondplayername);
         } else {
             currentTurn = 1;
-            turnText.setText("Turn: Player 1");
+            turnText.setText("Turn: " + firstplayername);
         }
     }
 
@@ -316,7 +335,7 @@ public class Main extends Application {
     private int addTokenTranslate(Pane root, int id, int x, int y, Token token) {
         token.setTranslateX(x * 40);
         token.setTranslateY(y * 40);
-        token.setOnMouseEntered(event -> moveToken(token));
+        token.setOnMouseClicked(event -> moveToken(token));
         root.getChildren().add(token);
         id++;
         return id;
@@ -370,7 +389,7 @@ public class Main extends Application {
     private void createCurrentTurnText(Pane root) {
         turnText.setTranslateX(5 * 40 + 20);
         turnText.setTranslateY(18 * 40 + 20);
-        turnText.setText("Turn: Player 1");
+        turnText.setText("Turn:" + firstplayername);
         root.getChildren().add(turnText);
     }
 
@@ -385,6 +404,8 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws MalformedURLException {
         Pane root = new Pane();
+        firstplayername = "Nusret";
+        secondplayername = "İlayda";
         createBoard(root);
         addTokens(root);
         addRemainingMovesTable(root);
@@ -468,7 +489,7 @@ public class Main extends Application {
             // Player 1
             int counter = 0;
             if (type == 1) {
-                counter = moveUp(10, 16, 6, counter);
+                counter = moveUp(10, 17, 6, counter);
                 counter = moveRight(11, 10, 8, counter);
                 road[counter] = tiles[18][9];
                 counter++;
